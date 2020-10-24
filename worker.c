@@ -22,22 +22,43 @@ char * trim_end_slash(const char * dir_path)
 }
 
 
+char * trim_get_params(const char * path)
+{
+    int i = 0;
+    for (; i < strlen(path); i++) {
+        if (path[i] == '?') {
+            break;
+        }
+    }
+    int trimmed_path_length = i;
+    char * trimmed_path = malloc(sizeof(char) * i + 1);
+    for (int i = 0; i < trimmed_path_length; ++i) {
+        trimmed_path[i] = path[i];
+    }
+    trimmed_path[trimmed_path_length] = '\0';
+    return trimmed_path;
+}
+
+
 char * get_file_path(const char * base_dir, const char * request_path) {
     // printf("Base dir: '%s', request_path: '%s'\n", base_dir, request_path);
+    char * trimmed_relative_path = trim_get_params(request_path);
+    // printf("Trimmed relative path %s\n", trimmed_relative_path);
     const char * relative_path;
-    if (strcmp(request_path, "/")) {
-        relative_path = request_path;
+    if (strcmp(trimmed_relative_path, "/")) {
+        relative_path = trimmed_relative_path;
     } else {
         relative_path = "/index.html";
     }
 
     char * base_dir_trimmed_path = trim_end_slash(base_dir);
-    // printf("Base dir trimmed path: '%s', relative_path: '%s'\n", base_dir_trimmed_path, relative_path);
+    // printf("Base dir trimmed path: '%s', relative_file: '%s'\n", base_dir_trimmed_path, relative_path);
     char * path_to_file = malloc(sizeof(char) * 128);
     strcpy(path_to_file, base_dir_trimmed_path);
     strcat(path_to_file, relative_path);
     
     free(base_dir_trimmed_path);
+    free(trimmed_relative_path);
     return path_to_file;
 }
 
