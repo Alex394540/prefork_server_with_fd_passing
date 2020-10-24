@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
+#include <getopt.h>
 #include "server.h"
 
 const int MIN_VALID_PORT = 1;

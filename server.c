@@ -14,12 +14,12 @@ void run_server(const char * ip, int port, const char * dir_path)
     if (process_id < 0)
     {
         printf("Daemonizing failed on fork!\n");
-        return 1;
+        exit(1);
     }
     if (process_id > 0)
     {
         printf("Process id = %d, daemonizing...\n", process_id);
-        return 0;
+        exit(0);
     }
 
     umask(0);
@@ -27,7 +27,7 @@ void run_server(const char * ip, int port, const char * dir_path)
     if(sid < 0)
     {
         printf("Error while creation new session! Sid < 0\n");
-        return 1;
+        exit(1);
     }
     // chdir("/");
     // close(STDIN_FILENO);
