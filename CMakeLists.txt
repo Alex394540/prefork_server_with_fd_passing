@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_C_COMPILER:FILEPATH "/usr/bin/gcc")
 set(CMAKE_C_FLAGS "-std=c99")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 project(final)
