@@ -5,16 +5,16 @@
 
 ssize_t sock_fd_write(int sock, void * buf, ssize_t buflen, int fd)
 {
-    if (buflen < 0) {
-        fprintf(stderr, "Buffer length should be at least 1 byte!\n");
-        exit(EXIT_FAILURE);
-    }
-
     ssize_t size;
     struct msghdr msg;
     struct iovec iov;
     union { struct cmsghdr cmsghdr; char control[CMSG_SPACE(sizeof(int))]; } cmsgu;
     struct cmsghdr * cmsg;
+
+    if (buflen < 0) {
+        fprintf(stderr, "Buffer length should be at least 1 byte!\n");
+        exit(EXIT_FAILURE);
+    }
 
     iov.iov_base = buf; 
     iov.iov_len = buflen;
@@ -30,12 +30,10 @@ ssize_t sock_fd_write(int sock, void * buf, ssize_t buflen, int fd)
         cmsg->cmsg_len = CMSG_LEN(sizeof(int));
         cmsg->cmsg_level = SOL_SOCKET;
         cmsg->cmsg_type = SCM_RIGHTS;
-        // printf("Master: passing fd %d\n", fd);
         *((int *) CMSG_DATA(cmsg)) = fd;
     } else {
         msg.msg_control = NULL;
         msg.msg_controllen = 0;
-        // printf("not passing fd\n");
     }
 
     size = sendmsg(sock, &msg, 0); 
@@ -46,16 +44,17 @@ ssize_t sock_fd_write(int sock, void * buf, ssize_t buflen, int fd)
 }
 
 
-void spawn_worker(struct process_ipc_info * process_info) {
+void spawn_worker(struct process_ipc_info * process_info) {    
+    pid_t pid;
+    int fd[2];
     const int parent_socket = 0;
     const int child_socket = 1;
 
-    int fd[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) < 0) {
         perror("socketpair");
         exit(EXIT_FAILURE);
     }
-    pid_t pid = fork();
+    pid = fork();
     process_info->pid = pid;
     if (pid < 0) {
         perror("fork");
@@ -76,7 +75,8 @@ void spawn_worker(struct process_ipc_info * process_info) {
 void prepare_for_listening(const char * ip, int port, struct master_connection_info * connection_struct) {
     int server_fd;
     struct sockaddr_in address;
-    int opt = 1; 
+    int opt = 1;
+    int max_queued = 1000;
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) 
     { 
@@ -101,7 +101,6 @@ void prepare_for_listening(const char * ip, int port, struct master_connection_i
         exit(EXIT_FAILURE);
     }
     
-    int max_queued = 1024;
     if (listen(server_fd, max_queued) < 0) 
     {
         perror("listen"); 
@@ -127,16 +126,13 @@ void start_master_loop(int master_socket, struct sockaddr_in * address, int * wo
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        // printf("Master: Accepted, slave socket fd = %d\n", slave_socket);
+
         // Plain round robbin algorthm
-        // printf("Master: requests: %d, workers_amount: %d\n", requests, workers_amount);
         int worker_num = (requests++) % workers_amount;
 
         // Some data should be sent, otherwise socket wont be passed
-        // printf("Master: sock_fd_write\n");
         char buf[1];
         ssize_t sendmsg_result = sock_fd_write(worker_fds[worker_num], buf, 1, slave_socket);
-        // printf("Master: sock_fd_write result = %ld\n", sendmsg_result);
         
         if (requests > 500) {
             shutdown(sockets_to_close[(requests - 500) % 1000], SHUT_WR);

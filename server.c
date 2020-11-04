@@ -8,8 +8,13 @@ const char * SERVE_DIRECTORY;
 
 void run_server(const char * ip, int port, const char * dir_path) 
 {
+    const int WORKERS_AMOUNT = get_nprocs_conf() - 1;
+    int worker_pids[WORKERS_AMOUNT];
+    int worker_fd[WORKERS_AMOUNT];
     pid_t process_id = 0;
     pid_t sid = 0;
+    
+    SERVE_DIRECTORY = dir_path;
     process_id = fork();
     if (process_id < 0)
     {
@@ -29,18 +34,7 @@ void run_server(const char * ip, int port, const char * dir_path)
         printf("Error while creation new session! Sid < 0\n");
         exit(1);
     }
-    // chdir("/");
-    // close(STDIN_FILENO);
-    // // close(STDOUT_FILENO);
-    // // close(STDERR_FILENO);
 
-    int slave_socket;
-    SERVE_DIRECTORY = dir_path;
-
-    const int WORKERS_AMOUNT = get_nprocs_conf() - 1;
-    // const int WORKERS_AMOUNT = 1;
-    int worker_pids[WORKERS_AMOUNT];
-    int worker_fd[WORKERS_AMOUNT];
     int current_worker_fd;
     int is_master = 1;
     int worker_number = 0;
