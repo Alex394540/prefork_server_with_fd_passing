@@ -8,8 +8,8 @@
 #include <getopt.h>
 #include "server.h"
 
-const int MIN_VALID_PORT = 1;
-const int MAX_VALID_PORT = 65535;
+const unsigned short MIN_VALID_PORT = 80;
+const unsigned short MAX_VALID_PORT = 65535;
 const char SYMBOLS_IN_IP_ADDRESS[] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',':','.'};
 
 
@@ -74,10 +74,10 @@ int save_params(char * ip, int port, char * dir)
 
 int main(int argc, char ** argv)
 {
-    char * ip;
-    int port;
-    char * dir;
-    int opt;
+    char * ip, dir;
+    int port, opt;
+    // char * dir;
+    // int opt;
     
     while ((opt = getopt(argc, argv, ":h:p:d:")) != -1)
     {
