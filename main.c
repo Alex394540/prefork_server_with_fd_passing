@@ -76,9 +76,6 @@ int main(int argc, char ** argv)
 {
     char * ip, dir;
     int port, opt;
-    // char * dir;
-    // int opt;
-    
     while ((opt = getopt(argc, argv, ":h:p:d:")) != -1)
     {
         switch (opt)
